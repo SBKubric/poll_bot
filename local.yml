@@ -1,0 +1,24 @@
+version: "3.8"
+
+name: "poll_bot-local"
+
+volumes:
+  sqlite_data_local: {}
+
+services:
+  poll_bot:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    image: poll_bot
+    stdin_open: true
+    depends_on:
+      - postgres
+      - redis
+    command: "/start"
+    volumes:
+      - ./src:/app:z
+    env_file:
+      - ./.envs/.production/.poll_bot
+    ports:
+      - "8002:8000"
