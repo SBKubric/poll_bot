@@ -1,10 +1,13 @@
+import typing as t
+
+from transitions import EventData
 from transitions.extensions.asyncio import AsyncMachine
 
-from polls import enums
+from polls import enums, models
 
 
 class PetAdvisorPoll(AsyncMachine):
-    def __init__(self):
+    def __init__(self, user_id: str):
         super().__init__(
             model=self,
             states=[
@@ -16,32 +19,42 @@ class PetAdvisorPoll(AsyncMachine):
                 "result",
             ],
             transitions=[
-                {"source": "greeting", "dest": "cat_or_dog", "trigger": "begin"},
+                {"source": "greeting", "dest": "cat_or_dog", "trigger": "next"},
                 {
                     "source": "cat_or_dog",
                     "dest": "calm_or_active",
-                    "trigger": "set_species",
+                    "before": "set_species",
+                    "trigger": "next",
                 },
                 {
                     "source": "calm_or_active",
                     "dest": "short_or_long_hair",
-                    "trigger": "set_activity",
+                    "before": "set_activity",
+                    "trigger": "next",
                 },
                 {
                     "source": "calm_or_active",
                     "dest": "hairy_or_not",
-                    "trigger": "set_activity",
+                    "before": "set_activity",
+                    "trigger": "next",
                 },
                 {
                     "source": "short_or_long_hair",
                     "dest": "result",
-                    "trigger": "set_hair",
+                    "before": "set_hair",
+                    "trigger": "next",
                 },
-                {"source": "hairy_or_not", "dest": "result", "trigger": "set_hair"},
+                {
+                    "source": "hairy_or_not",
+                    "dest": "result",
+                    "before": "set_hair",
+                    "trigger": "next",
+                },
             ],
             send_event=True,
             initial="greeting",
         )
+        self.user_id = user_id
         self.species: enums.SpeciesEnum = enums.SpeciesEnum.NOT_SET
         self.activity: enums.ActivityEnum = enums.ActivityEnum.NOT_SET
         self.hair_length: enums.HairLengthEnum = enums.HairLengthEnum.NOT_SET
@@ -57,16 +70,19 @@ class PetAdvisorPoll(AsyncMachine):
 
         raise Exception("Invalid species")
 
-    async def begin(self, event):
-        ...
+    async def set_species(self, event: EventData):
+        species = event.kwargs.get("species")
+        if not species:
+            raise Exception("Invalid species")
+        self.species = t.cast(enums.SpeciesEnum, species)
 
-    async def set_species(self, event):
-        ...
+    async def set_activity(self, event: EventData):
+        activity = event.kwargs.get("activity")
+        if not activity:
+            raise Exception("Invalid activity")
+        self.activity = t.cast(enums.ActivityEnum, activity)
 
-    async def set_activity(self, event):
-        ...
-
-    async def set_hair(self, event):
+    async def set_hair(self, event: EventData):
         if self.species == enums.SpeciesEnum.CAT:
             await self.set_hairyness(event)
             return
@@ -77,13 +93,22 @@ class PetAdvisorPoll(AsyncMachine):
 
         raise Exception("Invalid species")
 
-    async def set_hair_length(self, event):
+    async def set_hair_length(self, event: EventData):
+        length = event.kwargs.get("hair_length")
+        if not length:
+            raise Exception("Invalid hair length")
+        self.hair_length = t.cast(enums.HairLengthEnum, length)
+
+    async def set_hairyness(self, event: EventData):
+        hairyness = event.kwargs.get("hairyness")
+        if not hairyness:
+            raise Exception("Invalid hairyness")
+        self.hairyness = t.cast(enums.HairynessEnum, hairyness)
+
+    async def get_dialog_step(self) -> models.PollDialogStep:
         ...
 
-    async def set_hairyness(self, event):
-        ...
-
-    async def get_result(self):
+    async def get_result(self) -> models.PollResult:
         if self.state != "result":
             raise Exception("Not in result state")
         ...
