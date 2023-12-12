@@ -11,43 +11,53 @@ class PetAdvisorPoll(AsyncMachine):
         super().__init__(
             model=self,
             states=[
-                "greeting",
-                "cat_or_dog",
-                "calm_or_active",
-                "short_or_long_hair",
-                "hairy_or_not",
-                "result",
+                enums.PetAdvisorStatesEnum.GREETING,
+                enums.PetAdvisorStatesEnum.CAT_OR_DOG,
+                enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
+                enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
+                enums.PetAdvisorStatesEnum.RESULT,
             ],
             transitions=[
-                {"source": "greeting", "dest": "cat_or_dog", "trigger": "next"},
                 {
-                    "source": "cat_or_dog",
-                    "dest": "calm_or_active",
+                    "source": enums.PetAdvisorStatesEnum.GREETING,
+                    "dest": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
+                    "trigger": "next",
+                    "after": "persist",
+                },
+                {
+                    "source": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
+                    "dest": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
                     "before": "set_species",
+                    "after": "persist",
                     "trigger": "next",
                 },
                 {
-                    "source": "calm_or_active",
-                    "dest": "short_or_long_hair",
+                    "source": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                    "dest": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
                     "before": "set_activity",
+                    "after": "persist",
                     "trigger": "next",
                 },
                 {
-                    "source": "calm_or_active",
-                    "dest": "hairy_or_not",
+                    "source": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                    "dest": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                     "before": "set_activity",
+                    "after": "persist",
                     "trigger": "next",
                 },
                 {
-                    "source": "short_or_long_hair",
-                    "dest": "result",
+                    "source": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
+                    "dest": enums.PetAdvisorStatesEnum.RESULT,
                     "before": "set_hair",
+                    "after": "persist",
                     "trigger": "next",
                 },
                 {
-                    "source": "hairy_or_not",
-                    "dest": "result",
+                    "source": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
+                    "dest": enums.PetAdvisorStatesEnum.RESULT,
                     "before": "set_hair",
+                    "after": "persist",
                     "trigger": "next",
                 },
             ],
@@ -105,10 +115,13 @@ class PetAdvisorPoll(AsyncMachine):
             raise Exception("Invalid hairyness")
         self.hairyness = t.cast(enums.HairynessEnum, hairyness)
 
-    async def get_dialog_step(self) -> models.PollDialogStep:
+    async def get_dialog_step(self) -> models.Message:
         ...
 
-    async def get_result(self) -> models.PollResult:
+    async def get_result(self) -> models.Message:
         if self.state != "result":
             raise Exception("Not in result state")
+        ...
+
+    async def persist(self):
         ...
