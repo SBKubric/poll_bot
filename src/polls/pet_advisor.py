@@ -1,3 +1,4 @@
+import logging
 import typing as t
 
 from transitions import EventData
@@ -43,19 +44,16 @@ class PetAdvisorPoll(AsyncMachine):
                     "source": enums.PetAdvisorStatesEnum.GREETING.value,
                     "dest": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                     "trigger": "next",
-                    "after": "persist",
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                     "dest": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
-                    "after": "persist",
                     "trigger": "next",
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
                     "dest": enums.PetAdvisorStatesEnum.SMALL_OR_LARGE,
                     "conditions": ["is_dog"],
-                    "after": "persist",
                     "trigger": "next",
                 },
                 {
@@ -69,7 +67,6 @@ class PetAdvisorPoll(AsyncMachine):
                     "source": enums.PetAdvisorStatesEnum.SMALL_OR_LARGE,
                     "dest": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
                     "conditions": ["is_activity_set"],
-                    "after": "persist",
                     "trigger": "next",
                 },
                 {
@@ -83,19 +80,19 @@ class PetAdvisorPoll(AsyncMachine):
                     "source": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
                     "dest": enums.PetAdvisorStatesEnum.RESULT,
                     "conditions": ["is_size_set"],
-                    "after": "persist",
                     "trigger": "next",
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                     "dest": enums.PetAdvisorStatesEnum.RESULT,
                     "conditions": ["is_independence_set"],
-                    "after": "persist",
                     "trigger": "next",
                 },
             ],
             send_event=True,
             initial="greeting",
+            finalize_event="persist",
+            on_exception="log_error",
         )
         self.user_id = user_id
         self.species: enums.SpeciesEnum = enums.SpeciesEnum.NOT_SET
@@ -183,3 +180,6 @@ class PetAdvisorPoll(AsyncMachine):
 
     async def persist(self, _: EventData):
         ...
+
+    async def log_error(self, event: EventData):
+        logging.error(event.error)
