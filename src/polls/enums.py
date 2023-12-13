@@ -1,7 +1,7 @@
 import enum
 
 
-class PetAdvisorStatesEnum(enum.Enum, str):
+class PetAdvisorStatesEnum(str, enum.Enum):
     GREETING = "greeting"
     CAT_OR_DOG = "cat_or_dog"
     CALM_OR_ACTIVE = "calm_or_active"
@@ -12,37 +12,37 @@ class PetAdvisorStatesEnum(enum.Enum, str):
     RESULT = "result"
 
 
-class SpeciesEnum(enum.Enum, str):
+class SpeciesEnum(str, enum.Enum):
     CAT = "cat"
     DOG = "dog"
     NOT_SET = "not_set"
 
 
-class ActivityEnum(enum.Enum, str):
+class ActivityEnum(str, enum.Enum):
     CALM = "calm"
     ACTIVE = "active"
     NOT_SET = "not_set"
 
 
-class IndependanceEnum(enum.Enum, str):
-    INDEPENDENT = "independent"
+class IndependanceEnum(str, enum.Enum):
+    INDEPENDANT = "independent"
     NOT_INDEPENDENT = "not_independent"
     NOT_SET = "not_set"
 
 
-class SizeEnum(enum.Enum, str):
+class SizeEnum(str, enum.Enum):
     SMALL = "small"
     LARGE = "large"
     NOT_SET = "not_set"
 
 
-class HairLengthEnum(enum.Enum, str):
+class HairLengthEnum(str, enum.Enum):
     SHORT = "short"
     LONG = "long"
     NOT_SET = "not_set"
 
 
-class HairynessEnum(enum.Enum, str):
+class HairynessEnum(str, enum.Enum):
     HAIRY = "hairy"
     NOT_HAIRY = "not_hairy"
     NOT_SET = "not_set"

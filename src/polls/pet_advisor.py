@@ -96,11 +96,9 @@ class PetAdvisorPoll(AsyncMachine):
 
     def get_result_key(self) -> str:
         if self.species == enums.SpeciesEnum.CAT:
-            return (
-                f"{self.species.value}_{self.activity.value}_{self.hair_length.value}"
-            )
+            return f"{self.species.value}_{self.activity.value}_{self.independance.value}_{self.hairyness.value}"
         if self.species == enums.SpeciesEnum.DOG:
-            return f"{self.species.value}_{self.activity.value}_{self.hairyness.value}"
+            return f"{self.species.value}_{self.activity.value}_{self.size.value}_{self.hair_length.value}"
 
         raise Exception("Invalid species")
 

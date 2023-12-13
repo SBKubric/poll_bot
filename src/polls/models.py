@@ -3,5 +3,5 @@ from pydantic import BaseModel
 
 class Message(BaseModel):
     message_txt: str
-    image: bytearray
+    image: bytes
     extras: dict
