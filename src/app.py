@@ -18,11 +18,6 @@ async def start_pet_advisor(client, message):
     await message.reply(message.text)
 
 
-@app.on_message(filters.command("stop") & filters.private)
-async def stop_pet_advisor(client, message):
-    await message.reply(message.text)
-
-
 @app.on_message(filters.command("help") & filters.private)
 async def help_pet_advisor(client, message):
     await message.reply(message.text)
@@ -42,7 +37,7 @@ async def poll_pet_advisor(client, message):
             answer = await machine.get_dialog_step()
         if not answer:
             return
-        await message.reply(2_tg_answer(answer))
+        await message.reply(transform_2_tg_answer(answer))
 
     except Exception as e:
         logging.error(e)

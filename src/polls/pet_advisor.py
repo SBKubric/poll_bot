@@ -14,6 +14,8 @@ class PetAdvisorPoll(AsyncMachine):
                 enums.PetAdvisorStatesEnum.GREETING,
                 enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                 enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                enums.PetAdvisorStatesEnum.SMALL_OR_LARGE,
+                enums.PetAdvisorStatesEnum.INDEPENDENT_OR_NOT,
                 enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
                 enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                 enums.PetAdvisorStatesEnum.RESULT,
@@ -34,14 +36,32 @@ class PetAdvisorPoll(AsyncMachine):
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
-                    "dest": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
-                    "before": "set_activity",
+                    "dest": enums.PetAdvisorStatesEnum.SMALL_OR_LARGE,
+                    "conditions": ["is_dog"],
+                    "before": "set_size",
                     "after": "persist",
                     "trigger": "next",
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                    "dest": enums.PetAdvisorStatesEnum.INDEPENDENT_OR_NOT,
+                    "conditions": ["is_cat"],
+                    "before": "set_independance",
+                    "after": "persist",
+                    "trigger": "next",
+                },
+                {
+                    "source": enums.PetAdvisorStatesEnum.SMALL_OR_LARGE,
+                    "dest": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
+                    "conditions": ["is_dog"],
+                    "before": "set_activity",
+                    "after": "persist",
+                    "trigger": "next",
+                },
+                {
+                    "source": enums.PetAdvisorStatesEnum.INDEPENDENT_OR_NOT,
                     "dest": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
+                    "conditions": ["is_cat"],
                     "before": "set_activity",
                     "after": "persist",
                     "trigger": "next",
@@ -49,6 +69,7 @@ class PetAdvisorPoll(AsyncMachine):
                 {
                     "source": enums.PetAdvisorStatesEnum.SHORT_OR_LONG_HAIR,
                     "dest": enums.PetAdvisorStatesEnum.RESULT,
+                    "conditions": ["is_dog"],
                     "before": "set_hair",
                     "after": "persist",
                     "trigger": "next",
@@ -56,6 +77,7 @@ class PetAdvisorPoll(AsyncMachine):
                 {
                     "source": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                     "dest": enums.PetAdvisorStatesEnum.RESULT,
+                    "conditions": ["is_cat"],
                     "before": "set_hair",
                     "after": "persist",
                     "trigger": "next",
@@ -67,6 +89,8 @@ class PetAdvisorPoll(AsyncMachine):
         self.user_id = user_id
         self.species: enums.SpeciesEnum = enums.SpeciesEnum.NOT_SET
         self.activity: enums.ActivityEnum = enums.ActivityEnum.NOT_SET
+        self.size: enums.SizeEnum = enums.SizeEnum.NOT_SET
+        self.independance: enums.IndependanceEnum = enums.IndependanceEnum.NOT_SET
         self.hair_length: enums.HairLengthEnum = enums.HairLengthEnum.NOT_SET
         self.hairyness: enums.HairynessEnum = enums.HairynessEnum.NOT_SET
 
@@ -79,6 +103,12 @@ class PetAdvisorPoll(AsyncMachine):
             return f"{self.species.value}_{self.activity.value}_{self.hairyness.value}"
 
         raise Exception("Invalid species")
+
+    def is_cat(self) -> bool:
+        return self.species == enums.SpeciesEnum.CAT
+
+    def is_dog(self) -> bool:
+        return self.species == enums.SpeciesEnum.DOG
 
     async def set_species(self, event: EventData):
         species = event.kwargs.get("species")
@@ -114,6 +144,18 @@ class PetAdvisorPoll(AsyncMachine):
         if not hairyness:
             raise Exception("Invalid hairyness")
         self.hairyness = t.cast(enums.HairynessEnum, hairyness)
+
+    async def set_size(self, event: EventData):
+        size = event.kwargs.get("size")
+        if not size:
+            raise Exception("Invalid size")
+        self.size = t.cast(enums.SizeEnum, size)
+
+    async def set_independance(self, event: EventData):
+        independance = event.kwargs.get("independance")
+        if not independance:
+            raise Exception("Invalid independance")
+        self.independance = t.cast(enums.IndependanceEnum, independance)
 
     async def get_dialog_step(self) -> models.Message:
         ...
