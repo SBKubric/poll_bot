@@ -179,7 +179,7 @@ class PetAdvisorPoll(AsyncMachine):
     async def get_result(self) -> models.Message:
         if self.state != "result":
             raise Exception("Not in result state")
-        ...
+        return models.Message(message_txt=self.get_result_key(), image=b"", extras={})
 
     async def persist(self, _: EventData):
         ...
