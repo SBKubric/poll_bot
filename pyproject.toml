@@ -85,14 +85,8 @@ format = "%(levelname)-5.5s [%(name)s] %(message)s"
 datefmt = "%H:%M:%S"
 
 [tool.pytest.ini_options]
-asyncio_mode = 'auto'
+asyncio_mode = 'strict'
 markers = [
-    "authentication",
-    "openapi",
-    "oauth",
-    "fastapi_users",
-    "jwt",
-    "manager",
-    "router",
+    "pet_advisor",
     "asyncio",
 ]
