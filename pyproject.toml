@@ -11,7 +11,10 @@ dependencies = [
   "redis",
   "pyrogram",
   "tgcrypto",
-  "transitions"
+  "transitions",
+  "fastapi",
+  "sqladmin[full]",
+  "uvicorn[standard]",
   ]
 
 [project.optional-dependencies]
