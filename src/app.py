@@ -1,9 +1,13 @@
+import json
 import logging
+import typing as t
 
 from pyrogram import filters
 from pyrogram.client import Client
+from pyrogram.types import CallbackQuery
 
 from core.config import settings
+from polls import enums, managers, utils
 
 app = Client(
     settings.project_name,
@@ -23,26 +27,31 @@ async def help_pet_advisor(client, message):
     await message.reply(message.text)
 
 
-@app.on_message(filters.text & filters.private)
-async def poll_pet_advisor(client, message):
+@app.on_callback_query(filters.private)
+async def poll_pet_advisor(client: Client, callback: CallbackQuery):
     # retrieve machine 4 dialog & user
-    machine = None
-    answer = None
     try:
+        user_id = str(callback.from_user.id)
+        chat_id = str(callback.chat_instance) if callback.chat_instance else "0"
+        callback_data: dict[str, t.Any] = json.loads(callback.data)
+        machine = await managers.get_by_ids(user_id, chat_id)
+
+        answer = None
         # parse user input
         await machine.next(user_input=message.text)
         if machine.state != enums.PetAdvisorStatesEnum.RESULT:
-            answer = await machine.get_result()
+            results = await machine.get_result()
+            for result in results:
+                await message.reply(*utils.transform_2_tg_answer(result))
         else:
             answer = await machine.get_dialog_step()
         if not answer:
             return
-        await message.reply(transform_2_tg_answer(answer))
+        await message.reply(*utils.transform_2_tg_answer(answer))
 
     except Exception as e:
         logging.error(e)
         return
-    await message.reply(message.text)
 
 
 app.run()  # Automatically start() and idle()

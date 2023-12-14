@@ -38,7 +38,11 @@ async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
     async with SessionLocal() as session:
         poll = await session.execute(
             sa.select(models.Poll)
-            .where(models.Poll.p_telegram_id == user_id, models.Poll.chat_id == chat_id)
+            .where(
+                models.Poll.p_telegram_id == user_id,
+                models.Poll.chat_id == chat_id,
+                models.Poll.is_terminated == False,
+            )
             .order_by(models.Poll.created_at.desc())
             .limit(1)
         )

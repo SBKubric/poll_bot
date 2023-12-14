@@ -15,6 +15,7 @@ class Poll(Base):
     ptype = sa.Column(sa.String(30), default="pet_advisor")
     p_telegram_id = sa.Column(sa.String(255))
     chat_id = sa.Column(sa.String(255))
+    is_terminated = sa.Column(sa.Boolean, default=False)
     dialog_machine = sa.Column(sa.LargeBinary, nullable=True)
     result_id = sa.Column(sa.Integer, sa.ForeignKey("poll_results.id"), nullable=True)
     result: Mapped["PollResult"] = relationship("PollResult")
