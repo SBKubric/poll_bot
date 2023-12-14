@@ -13,7 +13,7 @@ class Poll(BaseModel):
 
 class Message(BaseModel):
     message_txt: str
-    image: bytes
+    image_path: str
     extras: dict
 
 
