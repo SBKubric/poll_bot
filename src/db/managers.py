@@ -20,6 +20,15 @@ async def create_poll(user_id: str, chat_id: str) -> int:
         return int(poll.id)  # type: ignore
 
 
+async def terminate_poll(poll_id: int) -> None:
+    async with SessionLocal() as session:
+        poll = await session.get(models.Poll, poll_id)
+        if not poll:
+            return
+        poll.is_terminated = True  # type: ignore
+        await session.commit()
+
+
 async def delete_poll(poll_id: int) -> None:
     async with SessionLocal() as session:
         await session.execute(sa.delete(models.Poll).where(models.Poll.id == poll_id))

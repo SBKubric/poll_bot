@@ -39,7 +39,6 @@ class PetAdvisorPoll(AsyncMachine):
                     "name": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                     "on_exit": "set_hairyness",
                 },
-                enums.PetAdvisorStatesEnum.RESULT,
             ],
             transitions=[
                 {
@@ -202,6 +201,7 @@ class PetAdvisorPoll(AsyncMachine):
             )
             for x in self_results
         ]
+        await managers.terminate_poll(self.poll_id)
         return self._results
 
     async def persist(self, _: EventData):
