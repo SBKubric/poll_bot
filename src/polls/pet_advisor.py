@@ -39,6 +39,7 @@ class PetAdvisorPoll(AsyncMachine):
                     "name": enums.PetAdvisorStatesEnum.HAIRY_OR_NOT,
                     "on_exit": "set_hairyness",
                 },
+                enums.PetAdvisorStatesEnum.RESULT,
             ],
             transitions=[
                 {
@@ -138,37 +139,37 @@ class PetAdvisorPoll(AsyncMachine):
         return self.size != enums.SizeEnum.NOT_SET
 
     async def set_species(self, event: EventData):
-        species = event.kwargs.get("species")
+        species = event.kwargs.get("user_input")
         if not species or not enums.SpeciesEnum.has_value(species):
             raise Exception("Invalid species")
         self.species = t.cast(enums.SpeciesEnum, species)
 
     async def set_activity(self, event: EventData):
-        activity = event.kwargs.get("activity")
+        activity = event.kwargs.get("user_input")
         if not activity or not enums.ActivityEnum.has_value(activity):
             raise Exception("Invalid activity")
         self.activity = t.cast(enums.ActivityEnum, activity)
 
     async def set_hair_length(self, event: EventData):
-        length = event.kwargs.get("hair_length")
+        length = event.kwargs.get("user_input")
         if not length or not enums.HairLengthEnum.has_value(length):
             raise Exception("Invalid hair length")
         self.hair_length = t.cast(enums.HairLengthEnum, length)
 
     async def set_hairyness(self, event: EventData):
-        hairyness = event.kwargs.get("hairyness")
+        hairyness = event.kwargs.get("user_input")
         if not hairyness or not enums.HairynessEnum.has_value(hairyness):
             raise Exception("Invalid hairyness")
         self.hairyness = t.cast(enums.HairynessEnum, hairyness)
 
     async def set_size(self, event: EventData):
-        size = event.kwargs.get("size")
+        size = event.kwargs.get("user_input")
         if not size or not enums.SizeEnum.has_value(size):
             raise Exception("Invalid size")
         self.size = t.cast(enums.SizeEnum, size)
 
     async def set_independence(self, event: EventData):
-        independence = event.kwargs.get("independence")
+        independence = event.kwargs.get("user_input")
         if not independence or not enums.IndependenceEnum.has_value(independence):
             raise Exception("Invalid independence")
         self.independence = t.cast(enums.IndependenceEnum, independence)
@@ -204,7 +205,10 @@ class PetAdvisorPoll(AsyncMachine):
         await managers.terminate_poll(self.poll_id)
         return self._results
 
-    async def persist(self, _: EventData):
+    async def persist(self, event: EventData):
+        persist = event.kwargs.get("persist", True)
+        if not persist:
+            return
         if not self.poll_id:
             self.poll_id = await managers.create_poll(self.user_id, self.chat_id)
         pickled = pickle.dumps(self)

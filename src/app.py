@@ -66,12 +66,15 @@ async def poll_pet_advisor(client: Client, callback: CallbackQuery):
     try:
         user_id = str(callback.from_user.id)
         chat_id = str(callback.chat_instance)
-        callback_data: dict[str, t.Any] = json.loads(callback.data)
+        if type(callback.data) != str:
+            logging.error("callback.data is not str")
+            return
+        callback_data: str = callback.data
         poll = await managers.get_by_ids(user_id, chat_id)
 
         answer = None
         # parse user input
-        await poll.next(user_input=callback_data.get("ans"))
+        await poll.next(user_input=callback_data)
 
         if poll.state == enums.PetAdvisorStatesEnum.RESULT:
             await callback.answer("Ваши результаты теста:\n")
