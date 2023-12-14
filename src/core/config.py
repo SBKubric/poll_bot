@@ -12,6 +12,7 @@ class ModelConfig:
 class Settings(BaseSettings):
     # Название проекта. Используется в Swagger-документации
     project_name: str = 'Polling Bot'
+    admin_port: int = 8000
 
     # Настройки Redis
     redis_host: str = 'localhost'
@@ -31,6 +32,8 @@ class Settings(BaseSettings):
 
     db_url: str = "sqlite+aiosqlite:///poll_bot.db"
     sqlite_db: str = "poll_bot.db"
+
+    media_path: str = "/media"
 
 
 settings = Settings()  # type: ignore

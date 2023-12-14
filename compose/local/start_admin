@@ -4,4 +4,4 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-/usr/local/bin/python /app/main.py
+/usr/local/bin/python /app/run_admin.py

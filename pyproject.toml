@@ -13,6 +13,7 @@ dependencies = [
   "tgcrypto",
   "transitions",
   "fastapi",
+  "fastapi-storages",
   "sqladmin[full]",
   "uvicorn[standard]",
   ]

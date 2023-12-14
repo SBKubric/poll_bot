@@ -1,6 +1,9 @@
 import sqlalchemy as sa
+from fastapi_storages import FileSystemStorage
+from fastapi_storages.integrations.sqlalchemy import FileType
 from sqlalchemy.orm import Mapped, relationship
 
+from core.config import settings
 from db.database import Base
 
 
@@ -25,9 +28,11 @@ class PollResult(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, index=True)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
-    result_key = sa.Column(sa.String(255), index=True, unique=True)
-    message_txt = sa.Column(sa.String(255), nullable=True)
-    image = sa.Column(sa.LargeBinary, nullable=True)
+    result_key = sa.Column(sa.String(255), index=True)
+    message_txt = sa.Column(sa.Text, nullable=True)
+    image = sa.Column(
+        FileType(FileSystemStorage(path=settings.media_path)), nullable=True
+    )
     extras = sa.Column(sa.JSON, nullable=True)
 
 
@@ -36,7 +41,9 @@ class PollStep(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, index=True)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now())
-    step_key = sa.Column(sa.String(255), index=True, unique=True)
-    message_txt = sa.Column(sa.String(255), nullable=True)
-    image = sa.Column(sa.LargeBinary, nullable=True)
+    step_key = sa.Column(sa.String(255), index=True)
+    message_txt = sa.Column(sa.Text, nullable=True)
+    image = sa.Column(
+        FileType(FileSystemStorage(path=settings.media_path)), nullable=True
+    )
     extras = sa.Column(sa.JSON, nullable=True)
