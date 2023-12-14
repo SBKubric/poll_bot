@@ -105,6 +105,9 @@ anyio==3.7.1 \
     #   fastapi
     #   starlette
     #   watchfiles
+async-cache==1.1.1 \
+    --hash=sha256:81aa9ccd19fb06784aaf30bd5f2043dc0a23fc3e998b93d0c2c17d1af9803393
+    # via poll-bot (pyproject.toml)
 attrs==23.1.0 \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
     --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015

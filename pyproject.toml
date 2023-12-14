@@ -16,6 +16,7 @@ dependencies = [
   "fastapi-storages",
   "sqladmin[full]",
   "uvicorn[standard]",
+  "async-cache"
   ]
 
 [project.optional-dependencies]

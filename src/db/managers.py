@@ -1,6 +1,5 @@
-from functools import cache
-
 import sqlalchemy as sa
+from cache import AsyncTTL
 
 from db import models
 from db.database import SessionLocal
@@ -61,14 +60,14 @@ async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
         return int(poll.id)  # type: ignore
 
 
-@cache
+@AsyncTTL(time_to_live=60, maxsize=1024)
 async def get_poll_steps() -> dict[str, models.PollStep]:
     async with SessionLocal() as session:
         poll_steps = await session.execute(sa.select(models.PollStep))
         return {step.step_key: step for step in poll_steps.scalars().all()}  # type: ignore
 
 
-@cache
+@AsyncTTL(time_to_live=60, maxsize=1024)
 async def get_poll_results() -> dict[str, list[models.PollStep]]:
     async with SessionLocal() as session:
         poll_results = await session.execute(sa.select(models.PollResult))
