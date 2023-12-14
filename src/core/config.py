@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     media_path: str = "/media"
 
+    debug: bool = False
+
 
 settings = Settings()  # type: ignore
 

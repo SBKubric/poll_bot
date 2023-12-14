@@ -179,8 +179,9 @@ class PetAdvisorPoll(AsyncMachine):
         step = steps.get(f"pet_advisor_{self.state}")
         if not step:
             raise Exception("Invalid state")
+        image_path = str(step.image) if step.image is not None else ""
         return models.Message(
-            message_txt=step.message_txt, image_path=step.image, extras=step.extras  # type: ignore
+            message_txt=step.message_txt, image_path=image_path, extras=step.extras  # type: ignore
         )
 
     async def get_results(self) -> list[models.Message]:
@@ -197,7 +198,7 @@ class PetAdvisorPoll(AsyncMachine):
         self._results = [
             models.Message(
                 message_txt=x.message_txt,  # type: ignore
-                image_path=x.image,  # type: ignore
+                image_path=lambda f: str(f) if f is not None else "",  # type: ignore
                 extras=x.extras,  # type: ignore
             )
             for x in self_results

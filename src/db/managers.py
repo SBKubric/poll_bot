@@ -45,7 +45,7 @@ async def get_poll(poll_id: int) -> bytes | None:
 
 async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
     async with SessionLocal() as session:
-        poll = await session.execute(
+        polls = await session.execute(
             sa.select(models.Poll)
             .where(
                 models.Poll.p_telegram_id == user_id,
@@ -55,9 +55,10 @@ async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
             .order_by(models.Poll.created_at.desc())
             .limit(1)
         )
+        poll = polls.scalars().first()
         if not poll:
             return None
-        return int(poll.scalar().id)  # type: ignore
+        return int(poll.id)  # type: ignore
 
 
 @cache

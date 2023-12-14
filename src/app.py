@@ -1,10 +1,15 @@
-import json
+import asyncio
 import logging
-import typing as t
 
 from pyrogram import filters
 from pyrogram.client import Client
-from pyrogram.types import CallbackQuery, Message
+from pyrogram.types import (
+    BotCommand,
+    CallbackQuery,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+)
 
 from core.config import settings
 from polls import enums, managers, utils
@@ -19,11 +24,25 @@ app = Client(
 
 @app.on_message(filters.command("start") & filters.private)
 async def start_new_poll(client: Client, message: Message):
+    client.set_bot_commands(  # type: ignore
+        commands=[
+            BotCommand("start", "Start new poll"),
+            BotCommand("stop", "Stop current poll"),
+            BotCommand("help", "Get help"),
+        ]
+    )
+
     if not message.chat.id:
         return
 
     user_id: str = str(message.from_user.id)
     chat_id: str = str(message.chat.id)
+
+    await client.send_message(
+        chat_id,
+        text="Привет, это бот, который может помочь тебе с выбором домашнего питомца.",
+    )
+
     poll = await managers.start_new_poll(user_id, chat_id)
     dialog_step = await poll.get_dialog_step()
     reply_markup = utils.transform_2_inline_markup(dialog_step.extras)
@@ -45,8 +64,11 @@ async def start_new_poll(client: Client, message: Message):
 
 @app.on_message(filters.command("stop") & filters.private)
 async def stop_poll(client, message):
+    if not message.chat.id:
+        logging.error("message.chat.id is None")
+        return
     user_id = str(message.from_user.id)
-    chat_id = str(message.chat.id) if message.chat else "0"
+    chat_id = str(message.chat.id)
     await managers.stop_poll_by_ids(user_id, chat_id)
     await message.reply(chat_id, "Ладно, я закончил")
 
@@ -104,4 +126,4 @@ async def poll_pet_advisor(client: Client, callback: CallbackQuery):
         return
 
 
-app.run()  # Automatically start() and idle()
+app.run()
