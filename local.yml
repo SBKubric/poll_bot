@@ -12,6 +12,7 @@ services:
     command: "/start_bot"
     volumes:
       - ./src:/app:z
+      - ./media:/media:z
     env_file:
       - ./.envs/.production/.poll_bot
 
@@ -24,6 +25,7 @@ services:
     command: "/start_admin"
     volumes:
       - ./src:/app:z
+      - ./media:/media:z
     env_file:
       - ./.envs/.production/.poll_bot
     ports:
