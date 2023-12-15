@@ -7,3 +7,6 @@ cdev:
 
 cprod:
 	. .venv/bin/activate && pip-compile --upgrade --extra=production --generate-hashes --allow-unsafe --output-file=requirements/production.txt pyproject.toml
+
+local:
+	docker compose -f local.yml up -d

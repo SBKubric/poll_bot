@@ -19,6 +19,7 @@ make local
 -   sqlalchemy2
 -   alembic
 -   sqlite3
+-   pytest
 -   [pyrogram](https://github.com/pyrogram/pyrogram)
 -   [sqladmin](https://github.com/aminalaee/sqladmin)
 -   [pytransitions](https://github.com/pytransitions/transitions)
