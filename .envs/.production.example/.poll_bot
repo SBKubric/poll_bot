@@ -1,0 +1,7 @@
+PROJECT_NAME="PetAdvisorBot"
+API_ID=<Telegram API ID>
+API_HASH=<Telegram API HASH>
+BOT_TOKEN=<Bot token from Botfater>
+SQLITE_DB=poll_bot.db
+DB_URL=sqlite+aiosqlite:///$SQLITE_DB
+MEDIA_PATH=/media
