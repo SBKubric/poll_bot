@@ -7,10 +7,16 @@ dependencies = [
   "pydantic-settings",
   "alembic",
   "sqlalchemy[asyncio]",
+  "aiosqlite",
   "redis",
   "pyrogram",
   "tgcrypto",
-  "transitions"
+  "transitions",
+  "fastapi",
+  "fastapi-storages",
+  "sqladmin[full]",
+  "uvicorn[standard]",
+  "async-cache"
   ]
 
 [project.optional-dependencies]
@@ -43,10 +49,10 @@ useLibraryCodeForTypes = true
 
 
 [tool.alembic]
-script_location = "alembic"
+script_location = "src/alembic"
 prepend_sys_path = true
 version_path_separator = "os"
-sqlalchemy.url = "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
+sqlalchemy.url = "sqlite:///$SQLITE_DB"
 
 [tool.alembic.post_write_hooks]
 
@@ -85,14 +91,8 @@ format = "%(levelname)-5.5s [%(name)s] %(message)s"
 datefmt = "%H:%M:%S"
 
 [tool.pytest.ini_options]
-asyncio_mode = 'auto'
+asyncio_mode = 'strict'
 markers = [
-    "authentication",
-    "openapi",
-    "oauth",
-    "fastapi_users",
-    "jwt",
-    "manager",
-    "router",
+    "pet_advisor",
     "asyncio",
 ]

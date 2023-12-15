@@ -53,13 +53,18 @@ COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
 RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
 	&& rm -rf /wheels/
 
-COPY ./compose/production/auth/entrypoint /entrypoint
+COPY ./compose/production/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
-COPY ./compose/local/auth/start /start
-RUN sed -i 's/\r$//g' /start
-RUN chmod +x /start
+COPY ./compose/local/start_bot /start_bot
+RUN sed -i 's/\r$//g' /start_bot
+RUN chmod +x /start_bot
+
+COPY ./compose/local/start_admin /start_admin
+RUN sed -i 's/\r$//g' /start_admin
+RUN chmod +x /start_admin
+
 
 # copy application code to WORKDIR
 COPY ./src ${APP_HOME}

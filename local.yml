@@ -2,9 +2,6 @@ version: "3.8"
 
 name: "poll_bot-local"
 
-volumes:
-  sqlite_data_local: {}
-
 services:
   poll_bot:
     build:
@@ -12,12 +9,23 @@ services:
       dockerfile: ./compose/local/Dockerfile
     image: poll_bot
     stdin_open: true
-    depends_on:
-      - postgres
-      - redis
-    command: "/start"
+    command: "/start_bot"
     volumes:
       - ./src:/app:z
+      - ./media:/media:z
+    env_file:
+      - ./.envs/.production/.poll_bot
+
+  admin:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    image: poll_bot
+    stdin_open: true
+    command: "/start_admin"
+    volumes:
+      - ./src:/app:z
+      - ./media:/media:z
     env_file:
       - ./.envs/.production/.poll_bot
     ports:

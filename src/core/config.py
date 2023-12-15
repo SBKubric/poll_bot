@@ -1,10 +1,8 @@
+import logging
 import os
-from logging import config as logging_config
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
-
-from core.logger import LOG_LEVEL, get_logging_config
 
 
 class ModelConfig:
@@ -14,6 +12,7 @@ class ModelConfig:
 class Settings(BaseSettings):
     # Название проекта. Используется в Swagger-документации
     project_name: str = 'Polling Bot'
+    admin_port: int = 8000
 
     # Настройки Redis
     redis_host: str = 'localhost'
@@ -27,9 +26,16 @@ class Settings(BaseSettings):
     # Корень проекта
     base_dir: str = os.path.dirname(os.path.dirname(__file__))
 
-    log_level: str = LOG_LEVEL
+    log_level: str = "DEBUG"
 
     sentry_dsn_auth: SecretStr = SecretStr("")
+
+    db_url: str = "sqlite+aiosqlite:///poll_bot.db"
+    sqlite_db: str = "poll_bot.db"
+
+    media_path: str = "/media"
+
+    debug: bool = False
 
 
 settings = Settings()  # type: ignore
@@ -42,13 +48,5 @@ if settings.sentry_dsn_auth:
     )
 
 
-def get_database_url() -> str:
-    return ""
-
-
-def get_database_url_async() -> str:
-    return ""
-
-
 # Применяем настройки логирования
-# logging_config.dictConfig(get_logging_config(level=settings.log_level))
+logging.basicConfig(level=settings.log_level)
