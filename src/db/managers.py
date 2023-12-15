@@ -1,3 +1,5 @@
+import logging
+
 import sqlalchemy as sa
 from cache import AsyncTTL
 
@@ -5,17 +7,12 @@ from db import models
 from db.database import SessionLocal
 
 
-async def persist_poll(poll_id: int, poll: bytes) -> None:
-    async with SessionLocal() as session:
-        session.add(models.Poll(id=poll_id, dialog_machine=poll))
-        await session.commit()
-
-
 async def create_poll(user_id: str, chat_id: str) -> int:
     async with SessionLocal() as session:
-        poll = models.Poll(p_telegram_id=user_id, chat_id=chat_id)
+        poll = models.Poll(p_telegram_id=user_id, chat_id="temp")
         session.add(poll)
         await session.commit()
+        logging.debug("Poll created: %s", poll.id)
         return int(poll.id)  # type: ignore
 
 
@@ -24,8 +21,13 @@ async def terminate_poll(poll_id: int) -> None:
         poll = await session.get(models.Poll, poll_id)
         if not poll:
             return
-        poll.is_terminated = True  # type: ignore
+        await session.execute(
+            sa.update(models.Poll)
+            .where(models.Poll.id == poll_id)
+            .values(is_terminated=True)
+        )
         await session.commit()
+        logging.debug("Poll terminated: %s", poll)
 
 
 async def delete_poll(poll_id: int) -> None:
@@ -38,8 +40,25 @@ async def get_poll(poll_id: int) -> bytes | None:
     async with SessionLocal() as session:
         poll = await session.get(models.Poll, poll_id)
         if not poll:
+            logging.debug('No poll with id "{}"'.format(poll_id))
             return None
+        logging.debug("Found poll: %s", poll)
         return poll.dialog_machine  # type: ignore
+
+
+async def persist_poll(poll_id: int, poll: bytes) -> None:
+    async with SessionLocal() as session:
+        poll_obj = await session.get(models.Poll, poll_id)
+        if not poll_obj:
+            logging.error('No poll with id "{}"'.format(poll_id))
+            return
+        await session.execute(
+            sa.update(models.Poll)
+            .where(models.Poll.id == poll_id)
+            .values(dialog_machine=poll)
+        )
+        await session.commit()
+        logging.debug("Persisted poll: %s", poll_id)
 
 
 async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
@@ -48,7 +67,7 @@ async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
             sa.select(models.Poll)
             .where(
                 models.Poll.p_telegram_id == user_id,
-                models.Poll.chat_id == chat_id,
+                models.Poll.chat_id == "temp",
                 models.Poll.is_terminated == False,
             )
             .order_by(models.Poll.created_at.desc())
@@ -56,7 +75,13 @@ async def get_poll_id_by_tg_id(user_id: str, chat_id: str) -> int | None:
         )
         poll = polls.scalars().first()
         if not poll:
+            logging.debug(
+                'No poll with user_id "{}" and chat_id "{}"'.format(user_id, "temp")
+            )
             return None
+        logging.debug(
+            f"Found poll: {poll.id} with user_id: {user_id} and chat_id: temp"
+        )
         return int(poll.id)  # type: ignore
 
 

@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # Корень проекта
     base_dir: str = os.path.dirname(os.path.dirname(__file__))
 
-    log_level: str = "WARNING"
+    log_level: str = "DEBUG"
 
     sentry_dsn_auth: SecretStr = SecretStr("")
 

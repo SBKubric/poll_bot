@@ -6,6 +6,10 @@ class HasValueMixin:
     def has_value(cls, value):
         return value in cls._value2member_map_  # type: ignore
 
+    @classmethod
+    def get_member(cls, value):
+        return cls._value2member_map_.get(value)  # type: ignore
+
 
 class PetAdvisorStatesEnum(str, HasValueMixin, enum.Enum):
     GREETING = "greeting"

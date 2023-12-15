@@ -14,7 +14,7 @@ class PetAdvisorPoll(AsyncMachine):
         super().__init__(
             model=self,
             states=[
-                enums.PetAdvisorStatesEnum.GREETING,
+                {"name": enums.PetAdvisorStatesEnum.GREETING, "on_exit": "greet"},
                 {
                     "name": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                     "on_exit": "set_species",
@@ -43,13 +43,14 @@ class PetAdvisorPoll(AsyncMachine):
             ],
             transitions=[
                 {
-                    "source": enums.PetAdvisorStatesEnum.GREETING.value,
+                    "source": enums.PetAdvisorStatesEnum.GREETING,
                     "dest": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                     "trigger": "next",
                 },
                 {
                     "source": enums.PetAdvisorStatesEnum.CAT_OR_DOG,
                     "dest": enums.PetAdvisorStatesEnum.CALM_OR_ACTIVE,
+                    "conditions": ["is_greeted"],
                     "trigger": "next",
                 },
                 {
@@ -92,19 +93,22 @@ class PetAdvisorPoll(AsyncMachine):
                 },
             ],
             send_event=True,
-            initial="greeting",
+            initial=enums.PetAdvisorStatesEnum.GREETING,
             finalize_event="persist",
             on_exception="log_error",
         )
         self.poll_id = 0
         self.user_id = user_id
         self.chat_id = chat_id
+        self.greeted: bool = False
         self.species: enums.SpeciesEnum = enums.SpeciesEnum.NOT_SET
         self.activity: enums.ActivityEnum = enums.ActivityEnum.NOT_SET
         self.size: enums.SizeEnum = enums.SizeEnum.NOT_SET
         self.independence: enums.IndependenceEnum = enums.IndependenceEnum.NOT_SET
         self.hair_length: enums.HairLengthEnum = enums.HairLengthEnum.NOT_SET
         self.hairyness: enums.HairynessEnum = enums.HairynessEnum.NOT_SET
+        self._results = []
+        logging.debug("Initialized PetAdvisorPoll")
 
     def get_result_key(self) -> str:
         if self.species == enums.SpeciesEnum.CAT:
@@ -115,9 +119,11 @@ class PetAdvisorPoll(AsyncMachine):
         raise Exception("Invalid species")
 
     def is_cat(self, _: EventData | None = None) -> bool:
+        logging.debug("is_cat: %s", self.species == enums.SpeciesEnum.CAT)
         return self.species == enums.SpeciesEnum.CAT
 
     def is_dog(self, _: EventData | None = None) -> bool:
+        logging.debug("is_dog: %s", self.species == enums.SpeciesEnum.DOG)
         return self.species == enums.SpeciesEnum.DOG
 
     def is_species_set(self, _: EventData | None = None) -> bool:
@@ -138,46 +144,67 @@ class PetAdvisorPoll(AsyncMachine):
     def is_size_set(self, _: EventData | None = None) -> bool:
         return self.size != enums.SizeEnum.NOT_SET
 
+    async def greet(self, event: EventData):
+        self.greeted = True
+
+    def is_greeted(self, _: EventData | None = None) -> bool:
+        return self.greeted
+
     async def set_species(self, event: EventData):
         species = event.kwargs.get("user_input")
         if not species or not enums.SpeciesEnum.has_value(species):
+            logging.debug(f"Invalid species: {species}")
             raise Exception("Invalid species")
-        self.species = t.cast(enums.SpeciesEnum, species)
+        self.species = t.cast(enums.SpeciesEnum, enums.SpeciesEnum.get_member(species))
 
     async def set_activity(self, event: EventData):
         activity = event.kwargs.get("user_input")
         if not activity or not enums.ActivityEnum.has_value(activity):
+            logging.debug(f"Invalid activity: {activity}")
             raise Exception("Invalid activity")
-        self.activity = t.cast(enums.ActivityEnum, activity)
+        self.activity = t.cast(
+            enums.ActivityEnum, enums.ActivityEnum.get_member(activity)
+        )
 
     async def set_hair_length(self, event: EventData):
         length = event.kwargs.get("user_input")
         if not length or not enums.HairLengthEnum.has_value(length):
+            logging.debug(f"Invalid hair length: {length}")
             raise Exception("Invalid hair length")
-        self.hair_length = t.cast(enums.HairLengthEnum, length)
+        self.hair_length = t.cast(
+            enums.HairLengthEnum, enums.HairLengthEnum.get_member(length)
+        )
 
     async def set_hairyness(self, event: EventData):
         hairyness = event.kwargs.get("user_input")
         if not hairyness or not enums.HairynessEnum.has_value(hairyness):
+            logging.debug(f"Invalid hairyness: {hairyness}")
             raise Exception("Invalid hairyness")
-        self.hairyness = t.cast(enums.HairynessEnum, hairyness)
+        self.hairyness = t.cast(
+            enums.HairynessEnum, enums.HairynessEnum.get_member(hairyness)
+        )
 
     async def set_size(self, event: EventData):
         size = event.kwargs.get("user_input")
         if not size or not enums.SizeEnum.has_value(size):
+            logging.debug(f"Invalid size: {size}")
             raise Exception("Invalid size")
-        self.size = t.cast(enums.SizeEnum, size)
+        self.size = t.cast(enums.SizeEnum, enums.SizeEnum.get_member(size))
 
     async def set_independence(self, event: EventData):
         independence = event.kwargs.get("user_input")
         if not independence or not enums.IndependenceEnum.has_value(independence):
+            logging.debug(f"Invalid independence: {independence}")
             raise Exception("Invalid independence")
-        self.independence = t.cast(enums.IndependenceEnum, independence)
+        self.independence = t.cast(
+            enums.IndependenceEnum, enums.IndependenceEnum.get_member(independence)
+        )
 
     async def get_dialog_step(self) -> models.Message:
         steps = await managers.get_poll_steps()
-        step = steps.get(f"pet_advisor_{self.state}")
+        step = steps.get(f"pet_advisor_{self.state.value}")
         if not step:
+            logging.debug(f"Invalid state: {self.state}, steps: {steps}, step: {step}")
             raise Exception("Invalid state")
         image_path = str(step.image) if step.image is not None else ""
         return models.Message(
@@ -195,10 +222,11 @@ class PetAdvisorPoll(AsyncMachine):
         self_results = results.get(result_key, [])
         if not self_results:
             raise Exception("No results found")
+        logging.debug("Found results: %s", self_results)
         self._results = [
             models.Message(
                 message_txt=x.message_txt,  # type: ignore
-                image_path=lambda f: str(f) if f is not None else "",  # type: ignore
+                image_path=str((lambda f: f if f is not None else "")(x.image)),  # type: ignore
                 extras=x.extras,  # type: ignore
             )
             for x in self_results
@@ -209,6 +237,7 @@ class PetAdvisorPoll(AsyncMachine):
     async def persist(self, event: EventData):
         persist = event.kwargs.get("persist", True)
         if not persist:
+            logging.debug("Not persisting")
             return
         if not self.poll_id:
             self.poll_id = await managers.create_poll(self.user_id, self.chat_id)

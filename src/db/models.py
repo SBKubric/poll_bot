@@ -21,7 +21,7 @@ class Poll(Base):
     result: Mapped["PollResult"] = relationship("PollResult")
 
     def __repr__(self):
-        return f"<Item(id={self.id}, ptype='{self.ptype}', owner_id={self.owner_id})>"
+        return f"<Item(id={self.id}, ptype='{self.ptype}', p_telegram_id={self.p_telegram_id}, chat_id={self.chat_id}, is_terminated={self.is_terminated})>"
 
 
 class PollResult(Base):
